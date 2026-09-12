@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>밀 방송문</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16233B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="밀방송">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+  :root{
+    --ink:#16233B; --ink-soft:#5A6B87; --paper:#F2F4F8; --card:#FFFFFF;
+    --line:#D8DEE9; --signal:#0B6E99; --slash:#C2542B; --ok:#1D7A5F; --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;padding:0 0 64px}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px}
+  header{padding:28px 0 16px}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 4px}
+  header p{margin:0;color:var(--ink-soft);font-size:14px}
+  .flight{display:flex;gap:8px;margin:14px 0 16px}
+  .flight input{flex:1;min-width:0}
+  input,select,button,textarea{font-family:inherit;font-size:15px}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+  textarea{min-height:130px;line-height:1.45;resize:vertical}
+  input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--signal);outline-offset:1px}
+  label{display:block;font-size:13px;color:var(--ink-soft);margin:0 0 5px}
+  .lbl-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .auto{font-size:12px;color:var(--ok);font-weight:600}
+  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:0 0 16px}
+  section h2{font-size:17px;font-weight:700;margin:0 0 2px}
+  .hint{font-size:13px;color:var(--ink-soft);margin:0 0 12px}
+  .steps{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:18px}
+  .steps li{margin:3px 0}
+  .opt{border-top:1px solid var(--line);padding:14px 0 2px;display:grid;grid-template-columns:1fr;gap:8px}
+  .opt .num{font-size:13px;font-weight:600;color:var(--signal);display:flex;justify-content:space-between;align-items:center}
+  .opt .num button{background:none;border:none;color:var(--ink-soft);font-size:13px;padding:2px 4px;cursor:pointer;text-decoration:underline}
+  .addrow{display:flex;gap:8px;margin-top:14px}
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600}
+  .btn:active{transform:translateY(1px)}
+  .btn.wide{flex:1}
+  .btn.solid{background:var(--signal);border-color:var(--signal);color:#fff}
+  .toggle{display:flex;align-items:center;gap:9px;margin-top:16px;font-size:14px}
+  .toggle input{width:auto}
+  .make{width:100%;padding:16px;border:none;border-radius:var(--radius);background:var(--ink);color:#fff;font-size:17px;font-weight:700;cursor:pointer;margin-top:4px}
+  #out:empty{display:none}
+  #out{margin-top:28px}
+  .script{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px 16px;margin:0 0 14px}
+  .script .tag{font-size:13px;font-weight:700;color:var(--signal);margin:0 0 10px}
+  .script p{margin:0 0 10px;font-size:var(--pa-size,20px);line-height:1.62;letter-spacing:-.01em;word-break:keep-all}
+  .script .sl{color:var(--slash);font-weight:700}
+  .tools{display:flex;gap:8px;align-items:center;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .tools .btn{padding:8px 12px;font-size:14px}
+  .sizer{margin-left:auto;display:flex;gap:6px}
+  .sizer button{width:38px;height:34px;border:1px solid var(--line);background:var(--card);border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;color:var(--ink)}
+  .note{color:var(--ink-soft);font-size:13px;margin:18px 0 0}
+  .stat{font-size:13px;margin-top:10px;min-height:18px;color:var(--ink-soft)}
+  .stat.good{color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>밀 방송문 만들기</h1>
+  <p>크루넷 화면을 붙여넣으면 한국어·영어 방송문이 만들어집니다.</p>
+</header>
+
+<div class="flight">
+  <input id="fno" placeholder="편명 (예: KE0054)" autocomplete="off">
+  <input id="rt" placeholder="구간 (예: HNL-ICN)" autocomplete="off">
+</div>
+
+<section>
+  <h2>크루넷 화면 붙여넣기</h2>
+  <ol class="steps">
+    <li>사진 앱에서 스크린샷 열고 메뉴 글씨 꾹 눌러 전체 선택 → 복사</li>
+    <li>아래에 붙여넣고 인식하기</li>
+  </ol>
+  <p class="hint">사번 워터마크, 비율(60%), #파스타 같은 태그는 알아서 걸러냅니다. 뒤섞여 들어와도 괜찮습니다.</p>
+  <textarea id="src" placeholder="1ST MEAL&#10;1. KOREAN BIBIMBAP&#10;한식 비빔밥 (60%)&#10;2. WESTERN BEEF WITH RED WINE SAUCE AND PASTA #PASTA&#10;…"></textarea>
+  <div class="addrow">
+    <button class="btn wide solid" id="parse" type="button">메뉴 인식하기</button>
+    <button class="btn" id="clear" type="button">지우기</button>
+  </div>
+  <div class="stat" id="pstat"></div>
+</section>
+
+<section class="meal" id="m1">
+  <h2>첫 번째 식사</h2>
+  <p class="hint">인식이 빗나갔으면 여기서 바로 고치세요. 한글만 쳐도 영문이 채워집니다.</p>
+  <div class="opts"></div>
+  <div class="addrow"><button class="btn wide add" type="button">＋ 메뉴 추가</button></div>
+  <label class="toggle"><input type="checkbox" class="soup"> 뜨거운 국이 포함된 식사</label>
+</section>
+
+<section class="meal" id="m2">
+  <h2>두 번째 식사</h2>
+  <p class="hint">두 번째 식사가 없으면 모두 비워두세요.</p>
+  <div class="opts"></div>
+  <div class="addrow"><button class="btn wide add" type="button">＋ 메뉴 추가</button></div>
+  <label class="toggle"><input type="checkbox" class="soup"> 뜨거운 국이 포함된 식사</label>
+</section>
+
+<button class="make" id="make" type="button">방송문 만들기</button>
+<div class="addrow"><button class="btn wide" id="ai" type="button">영문 AI로 다듬기 (인터넷 필요)</button></div>
+<div class="stat" id="aistat"></div>
+
+<div id="out"></div>
+
+<p class="note">읽을 때 <span style="color:var(--slash);font-weight:700">/</span> 에서 한 번 끊어 읽으세요.</p>
+
+<datalist id="menus"></datalist>
+</div>
+
+<script>
+/* ── 1. 확정 메뉴 사전 ──────────────────────────────────── */
+const EXACT = {
+"낙지덮밥":["한식","Spicy stir-fried octopus with steamed rice"],
+"비빔밥":["한식","Bibimbap, Korean style mixed rice with vegetables"],
+"불고기덮밥":["한식","Bulgogi, marinated beef with steamed rice"],
+"불고기와 도토리묵밥":["한식","Bulgogi with chilled acorn jelly and rice soup"],
+"제육덮밥":["한식","Spicy stir-fried pork with steamed rice"],
+"닭갈비덮밥":["한식","Spicy stir-fried chicken with steamed rice"],
+"김치찌개와 밥":["한식","Kimchi stew with steamed rice"],
+"된장찌개와 밥":["한식","Soybean paste stew with steamed rice"],
+"갈비탕과 밥":["한식","Short rib soup with steamed rice"],
+"육개장과 밥":["한식","Spicy beef soup with steamed rice"],
+"채소죽":["한식","Vegetable porridge"],
+"소고기죽":["한식","Beef porridge"],
+"전복죽":["한식","Abalone porridge"],
+"블랙빈소스의 소고기 요리와 달걀 볶음밥":["중식","Stir fried beef with black bean sauce and egg fried rice"],
+"짜장소스의 소고기 요리":["중식","Stir fried beef with jjajang(black bean) sauce"],
+"매운맛 가지볶음과 밥":["중식","Chinese style spicy eggplant with rice"],
+"마파두부와 밥":["중식","Mapo tofu with steamed rice"],
+"탕수육과 밥":["중식","Sweet and sour pork with steamed rice"],
+"토마토소스의 파스타":["양식","Linguine pasta with tomato sauce"],
+"로제소스의 파스타":["양식","Linguine pasta with rosé sauce"],
+"크림소스의 파스타":["양식","Linguine pasta with cream sauce"],
+"토마토 크림소스의 푸실리 파스타":["양식","Fusilli pasta with tomato cream sauce"],
+"레드 와인소스의 소고기 요리와 파스타":["양식","Beef with red wine sauce and pasta"],
+"스트로가노프 소고기스튜와 웨지 감자":["양식","Beef stroganoff with potato wedges"],
+"쇠고기스튜와 감자":["양식","Beef stew with mashed potato"],
+"스크램블드에그와 베이컨, 감자":["양식","Scrambled eggs with bacon and potato"],
+"오믈렛과 소시지":["양식","Omelette with sausage"],
+"채소 커리와 쌀밥":["아시아식","Vegetable curry with steamed rice"]
+};
+
+/* ── 2. 조합 사전 ──────────────────────────────────────── */
+const MOD = {"매콤한":"spicy","매운맛":"spicy","매운":"spicy","얼큰한":"spicy","순한":"mild",
+"구운":"grilled","그릴드":"grilled","볶은":"stir-fried","볶음":"stir-fried","튀긴":"fried",
+"찐":"steamed","조린":"braised","훈제":"smoked","차가운":"chilled","한국식":"Korean style",
+"중국식":"Chinese style","일본식":"Japanese style","이탈리안":"Italian style","태국식":"Thai style"};
+const SAUCE = {"로제소스":"rosé sauce","토마토 크림소스":"tomato cream sauce","토마토크림소스":"tomato cream sauce",
+"토마토소스":"tomato sauce","크림소스":"cream sauce","블랙빈소스":"black bean sauce",
+"짜장소스":"jjajang(black bean) sauce","굴소스":"oyster sauce","데리야끼소스":"teriyaki sauce",
+"데리야키소스":"teriyaki sauce","고추장소스":"gochujang sauce","머쉬룸소스":"mushroom sauce",
+"버섯소스":"mushroom sauce","간장소스":"soy sauce","칠리소스":"chili sauce","바비큐소스":"barbecue sauce",
+"화이트 와인소스":"white wine sauce","화이트와인소스":"white wine sauce","레드 와인소스":"red wine sauce",
+"레드와인소스":"red wine sauce","미트소스":"meat sauce","카레소스":"curry sauce",
+"스위트칠리소스":"sweet chili sauce","허니머스터드":"honey mustard sauce","페스토":"pesto sauce"};
+const DISH = {"제육볶음":"spicy stir-fried pork","낙지볶음":"spicy stir-fried octopus",
+"오징어볶음":"spicy stir-fried squid","닭갈비":"spicy stir-fried chicken","불고기":"bulgogi",
+"비빔밥":"bibimbap","잡채":"japchae, stir-fried glass noodles","떡갈비":"grilled short rib patty",
+"김치찌개":"kimchi stew","된장찌개":"soybean paste stew","순두부찌개":"soft tofu stew",
+"부대찌개":"sausage stew","갈비탕":"short rib soup","육개장":"spicy beef soup",
+"삼계탕":"ginseng chicken soup","설렁탕":"beef bone soup","마파두부":"mapo tofu",
+"탕수육":"sweet and sour pork","깐풍기":"sweet and spicy fried chicken","유산슬":"stir-fried seafood and vegetables",
+"칠리새우":"chili shrimp","짜장면":"jjajangmyeon, noodles with black bean sauce",
+"짬뽕":"jjamppong, spicy seafood noodle soup","우동":"udon noodles","냉면":"cold buckwheat noodles",
+"비빔국수":"spicy cold noodles","스트로가노프":"beef stroganoff","스튜":"stew",
+"스크램블드에그":"scrambled eggs","스크램블에그":"scrambled eggs","오믈렛":"omelette",
+"함박스테이크":"hamburger steak","미트볼":"meatballs","라자냐":"lasagna","리조또":"risotto",
+"커틀렛":"cutlet","돈까스":"pork cutlet","커리":"curry","카레":"curry","나시고랭":"nasi goreng",
+"팟타이":"pad Thai","쌀국수":"rice noodle soup","딤섬":"dim sum","군만두":"fried dumplings",
+"만두":"dumplings","샌드위치":"sandwich","푸실리 파스타":"fusilli pasta","푸실리":"fusilli pasta",
+"펜네 파스타":"penne pasta","파스타":"linguine pasta","스파게티":"spaghetti","샐러드":"salad","스테이크":"steak"};
+const MAIN = {"소고기":"beef","쇠고기":"beef","돼지고기":"pork","닭고기":"chicken","치킨":"chicken",
+"오리고기":"duck","생선":"fish","연어":"salmon","대구":"cod","새우":"shrimp","낙지":"octopus",
+"문어":"octopus","오징어":"squid","해물":"seafood","두부":"tofu","채소":"vegetable","야채":"vegetable",
+"달걀":"egg","계란":"egg","버섯":"mushroom","가지":"eggplant","전복":"abalone","게살":"crab meat",
+"소시지":"sausage","베이컨":"bacon","햄":"ham","갈비":"short rib","안심":"beef tenderloin","등심":"beef sirloin"};
+const SIDE = {"달걀 볶음밥":"egg fried rice","계란 볶음밥":"egg fried rice","새우 볶음밥":"shrimp fried rice",
+"볶음밥":"fried rice","쌀밥":"steamed rice","흰밥":"steamed rice","밥":"steamed rice",
+"웨지 감자":"potato wedges","매쉬드포테이토":"mashed potato","으깬 감자":"mashed potato",
+"구운 감자":"roasted potato","감자":"mashed potato","국수":"noodles","면":"noodles","빵":"bread",
+"모닝빵":"bread roll","토마토":"tomato","브로콜리":"broccoli","아스파라거스":"asparagus",
+"시금치":"spinach","콩나물":"bean sprouts","김치":"kimchi","샐러드":"salad"};
+const keys = o => Object.keys(o).sort((a,b)=>b.length-a.length);
+
+function scan(str){
+  let s = " " + str.replace(/요리/g," ").replace(/덮밥/g," 덮밥 ") + " ";
+  const got = {mods:[],sauce:null,dish:null,main:null,side:null,donburi:false};
+  if(/덮밥/.test(s)){ got.donburi = true; s = s.split("덮밥").join(" "); }
+  const take = (dict, cb) => { for(const k of keys(dict)){ if(s.includes(k)){ cb(dict[k]); s = s.split(k).join(" "); } } };
+  take(SAUCE, v => { if(!got.sauce) got.sauce = v; });
+  take(DISH,  v => { if(!got.dish)  got.dish  = v; });
+  take(MOD,   v => { if(!got.mods.includes(v)) got.mods.push(v); });
+  take(SIDE,  v => { if(!got.side)  got.side  = v; });
+  take(MAIN,  v => { if(!got.main)  got.main  = v; });
+  return got;
+}
+function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+function translate(ko){
+  const raw = (ko||"").trim();
+  if(!raw) return "";
+  if(EXACT[raw]) return EXACT[raw][1];
+  const juk = raw.match(/^(.+?)죽$/);
+  if(juk){ const g = scan(juk[1]); return cap((g.dish || g.main || juk[1]) + " porridge"); }
+  const g = scan(raw);
+  let head = g.dish || g.main;
+  if(!head && g.side){ head = g.side; g.side = null; }
+  if(!head) return "";
+  let mods = g.mods.slice();
+  if(g.donburi && !mods.some(m => /fried|grilled|braised|steamed/.test(m))) mods.push("stir-fried");
+  if(g.donburi && !g.side) g.side = "steamed rice";
+  mods.sort((a,b) => (a==="spicy" ? -1 : b==="spicy" ? 1 : 0));
+  if(/^spicy /.test(head)) mods = mods.filter(m => m !== "spicy");
+  let out = (mods.join(" ") + " " + head).trim();
+  const tail = [];
+  if(g.sauce) tail.push(g.sauce);
+  if(g.side)  tail.push(g.side);
+  if(tail.length) out += " with " + tail.join(" and ");
+  return cap(out);
+}
+function guessKind(ko){
+  if(EXACT[ko]) return EXACT[ko][0];
+  if(/커리|카레|나시고랭|팟타이|쌀국수|사테/.test(ko)) return "아시아식";
+  if(/짜장|짬뽕|마파|탕수육|깐풍|블랙빈|가지볶음|볶음밥|딤섬|만두|중국식/.test(ko)) return "중식";
+  if(/파스타|스파게티|스튜|오믈렛|스크램블|리조또|라자냐|스테이크|커틀렛|샌드위치|감자|베이컨|소시지|와인소스/.test(ko)) return "양식";
+  return "한식";
+}
+
+/* ── 3. 크루넷 텍스트 파서 (워터마크 대응) ───────────────── */
+const KIND_MAP = {KOREAN:"한식",CHINESE:"중식",WESTERN:"양식",JAPANESE:"아시아식",ASIAN:"아시아식",
+  "한식":"한식","중식":"중식","양식":"양식","일식":"아시아식","아시아식":"아시아식"};
+const EN_KIND_RE = /\b(KOREAN|CHINESE|WESTERN|JAPANESE|ASIAN)\b/i;
+const KO_KIND_RE = /(아시아식|한식|중식|양식|일식)/;
+const JUNK = /^(Y\/CLS|C\/CLS|DUTY|PAX|A\/C|SERVICE|HANWAY|CREWNET|crewnet\.|홈|스케줄|공지사항|브리핑시트|비행 준비|오늘|오후|오전|DEP|ARR)/i;
+const DAYS = ["SUN","MON","TUE","WED","THU","FRI","SAT","PAX","ALL","NEW","AND","THE","FOR","CLS","MEAL"];
+
+function sentenceCase(s){
+  const t = (s||"").trim().replace(/\s+/g," ");
+  if(!t) return "";
+  const letters = t.replace(/[^A-Za-z]/g,"");
+  const upper = (letters.match(/[A-Z]/g)||[]).length / Math.max(1, letters.length);
+  const body = upper > .7 ? t.toLowerCase() : t;
+  return cap(body).replace(/\bkorean\b/g,"Korean").replace(/\bchinese\b/g,"Chinese")
+    .replace(/\bthai\b/g,"Thai").replace(/\bitalian\b/g,"Italian");
+}
+function dedupeWords(s){
+  return (s||"").split(/\s+/).filter((w,i,a) => i===0 || w !== a[i-1]).join(" ");
+}
+
+function parseCrewnet(text, koStarts){
+  const meals = {1:[],2:[],3:[]};
+  let meal = 1, cur = null;
+  const push = () => {
+    if(cur && (cur.ko || cur.en)){
+      cur.ko = dedupeWords(cur.ko.trim().replace(/[\s,·]+$/,""));
+      cur.en = sentenceCase(dedupeWords(cur.en));
+      cur.kind = cur.kind || guessKind(cur.ko);
+      meals[meal].push(cur);
+    }
+    cur = null;
+  };
+  for(const raw of text.split(/\n/)){
+    if(/(1ST|FIRST)\s*MEAL/i.test(raw)){ push(); meal = 1; continue; }
+    if(/(2ND|SECOND)\s*MEAL/i.test(raw)){ push(); meal = 2; continue; }
+    if(/(IN-?BETWEEN|3RD|THIRD|REFRESH|SNACK|LIGHT\s*MEAL|SPECIAL\s*MEAL)/i.test(raw)){ push(); meal = 3; continue; }
+
+    let l = raw
+      .replace(/\(\s*\d{1,3}\s*%\s*\)/g," ")   // (60%)
+      .replace(/#\S+/g," ")                    // #PASTA, #감자
+      .replace(/\d+/g," ")                     // 사번 워터마크와 그 조각 전부
+      .replace(/[·|]/g," ")
+      .replace(/\s+/g," ").trim();
+    if(!l || JUNK.test(l) || /^[.\-–()%:,\s]+$/.test(l)) continue;
+
+    const em = l.match(EN_KIND_RE);
+    if(em){
+      push();
+      cur = {kind: KIND_MAP[em[1].toUpperCase()], ko:"", en:""};
+      l = l.replace(EN_KIND_RE," ").trim();
+    }else{
+      const km = l.match(KO_KIND_RE);
+      if(km){
+        if(koStarts && cur && (cur.ko || cur.en)) push();
+        if(!cur) cur = {kind: KIND_MAP[km[1]], ko:"", en:""};
+        else cur.kind = cur.kind || KIND_MAP[km[1]];
+        l = l.replace(KO_KIND_RE," ").trim();
+      }
+    }
+    l = l.replace(/^[.)\s]+/,"").replace(/\s+/g," ").trim();
+    if(!l) continue;
+    if(!cur) cur = {kind:null, ko:"", en:""};
+
+    const hasKo = /[가-힣]/.test(l);
+    const hasEn = /[A-Za-z]{3,}/.test(l);
+    if(hasKo && !hasEn) cur.ko += (cur.ko ? " " : "") + l;
+    else if(hasEn && !hasKo) cur.en += (cur.en ? " " : "") + l;
+    else if(hasKo && hasEn){
+      const ko = (l.match(/[가-힣][가-힣\s,()]*/g) || []).join(" ").replace(/\s+/g," ").trim();
+      const en = l.replace(/[가-힣]/g," ").replace(/\s+/g," ").trim();
+      if(ko) cur.ko += (cur.ko ? " " : "") + ko;
+      if(en.replace(/[^A-Za-z]/g,"").length > 2) cur.en += (cur.en ? " " : "") + en;
+    }
+  }
+  push();
+  return meals;
+}
+// KOREAN/WESTERN 같은 영문 종류를 못 읽었으면 한글 종류를 기준으로 다시 시도
+function parseAuto(text){
+  const hasEnKind = /\b(KOREAN|CHINESE|WESTERN|JAPANESE|ASIAN)\b/i.test(text);
+  return parseCrewnet(text, !hasEnKind);
+}
+
+/* ── 4. 화면 ───────────────────────────────────────────── */
+document.getElementById("menus").innerHTML =
+  Object.keys(EXACT).map(k => '<option value="'+k+'">'+EXACT[k][0]+'</option>').join("");
+const EN_KIND = {"한식":"Korean","중식":"Chinese","양식":"Western","아시아식":"Asian"};
+const KR_ORD = ["첫째","둘째","셋째","넷째"];
+
+function optRow(i){
+  const d = document.createElement("div");
+  d.className = "opt";
+  d.innerHTML =
+    '<div class="num"><span>'+(i+1)+'번째 메뉴</span><button type="button" class="del">삭제</button></div>'+
+    '<div><label>종류</label><select class="kind"><option>한식</option><option>중식</option><option>양식</option><option>아시아식</option></select></div>'+
+    '<div><label>한글 메뉴명</label><input class="ko" list="menus" autocomplete="off" placeholder="예: 매콤한 낙지덮밥"></div>'+
+    '<div><div class="lbl-row"><label>영문 메뉴명</label><span class="auto"></span></div>'+
+    '<input class="eng" autocomplete="off" placeholder="자동으로 채워집니다"></div>';
+  d.querySelector(".del").onclick = () => { d.remove(); renumber(); };
+  const ko = d.querySelector(".ko"), en = d.querySelector(".eng"),
+        kind = d.querySelector(".kind"), flag = d.querySelector(".auto");
+  let touched = false;
+  en.addEventListener("input", () => { touched = true; flag.textContent = "직접 입력"; });
+  ko.addEventListener("input", () => {
+    const v = ko.value.trim();
+    kind.value = guessKind(v);
+    if(touched && en.value) return;
+    const t = translate(v);
+    en.value = t;
+    flag.textContent = t ? "자동 변환" : (v ? "변환 실패 — 직접 입력" : "");
+  });
+  return d;
+}
+function fillRow(d, item){
+  d.querySelector(".kind").value = item.kind || guessKind(item.ko);
+  d.querySelector(".ko").value = item.ko || "";
+  const en = item.en || translate(item.ko);
+  d.querySelector(".eng").value = en;
+  d.querySelector(".auto").textContent = item.en ? "화면에서 읽음" : (en ? "자동 변환" : "");
+}
+function renumber(){
+  document.querySelectorAll(".meal").forEach(m =>
+    m.querySelectorAll(".opt .num span").forEach((s,i) => s.textContent = (i+1)+"번째 메뉴"));
+}
+document.querySelectorAll(".meal").forEach(m => {
+  const box = m.querySelector(".opts");
+  for(let i=0;i<3;i++) box.appendChild(optRow(i));
+  m.querySelector(".add").onclick = () => {
+    if(box.children.length >= 4) return;
+    box.appendChild(optRow(box.children.length));
+  };
+});
+
+document.getElementById("parse").onclick = () => {
+  const stat = document.getElementById("pstat");
+  const txt = document.getElementById("src").value;
+  if(!txt.trim()){ stat.className="stat"; stat.textContent = "붙여넣은 내용이 없습니다."; return; }
+  const meals = parseAuto(txt);
+  let n = 0;
+  [1,2].forEach(i => {
+    const list = meals[i];
+    if(!list.length) return;
+    const box = document.getElementById("m"+i).querySelector(".opts");
+    box.innerHTML = "";
+    list.slice(0,4).forEach((item,idx) => {
+      const row = optRow(idx);
+      box.appendChild(row);
+      fillRow(row, item);
+      n++;
+    });
+  });
+  const clean = txt.replace(/\d{5,}/g," ");
+  const f = clean.match(/\b([A-Z]{2}\s?\d{3,4})\b/);
+  if(f && !document.getElementById("fno").value) document.getElementById("fno").value = f[1].replace(/\s/,"");
+  const codes = [...new Set((clean.match(/\b[A-Z]{3}\b/g)||[]).filter(c => !DAYS.includes(c)))];
+  if(codes.length >= 2 && !document.getElementById("rt").value)
+    document.getElementById("rt").value = codes[0]+"-"+codes[1];
+  stat.className = n ? "stat good" : "stat";
+  stat.textContent = n ? ("메뉴 "+n+"개를 읽었습니다. 아래에서 확인하세요.")
+                       : "메뉴를 찾지 못했습니다. 아래에 직접 입력해 주세요.";
+  if(n) document.getElementById("m1").scrollIntoView({behavior:"smooth", block:"start"});
+};
+document.getElementById("clear").onclick = () => {
+  document.getElementById("src").value = "";
+  document.getElementById("pstat").textContent = "";
+};
+
+function josaIGa(w){
+  const c = (w||"").trim().slice(-1), code = c.charCodeAt(0);
+  if(code >= 0xAC00 && code <= 0xD7A3) return ((code-0xAC00)%28) ? "이" : "가";
+  return "이(가)";
+}
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function collect(m){
+  return [...m.querySelectorAll(".opt")].map(o => ({
+    kind:o.querySelector(".kind").value,
+    ko:o.querySelector(".ko").value.trim(),
+    en:o.querySelector(".eng").value.trim()
+  })).filter(o => o.ko || o.en);
+}
+function buildKo(list, order, soup){
+  const n = order === 1 ? "첫 번째" : "두 번째";
+  let t = "손님 여러분, 잠시 후 식사서비스를 시작하겠습니다.\n오늘의 " + n + " 식사는\n";
+  list.forEach((o,i) => { t += KR_ORD[i] + ", " + (i===0 ? o.kind+"으로" : o.kind) + " " + o.ko + "\n"; });
+  t += josaIGa(list[list.length-1].ko) + " 있습니다.\n";
+  t += "식사시간 동안 뒷좌석 손님을 위해 좌석등받이를 원위치 해 주십시오.\n";
+  t += "일부 식사의 경우 미리 소진될 수 있으며, 기류 변화로 뜨거운 " + (soup?"국과 음료":"음료") + " 서비스가 제한될 수 있습니다.\n";
+  t += "이점 양해해 주시기 바랍니다.";
+  return t;
+}
+function buildEn(list, order, soup){
+  const n = order === 1 ? "first" : "second";
+  const cnt = ["one","two","three","four"][list.length-1];
+  let t = "Ladies and gentlemen, we will now begin the " + n + " meal service./\n";
+  t += "On this flight, we have " + cnt + " option" + (list.length>1?"s":"") + " for the " + n + " meal.\n";
+  list.forEach((o,i) => {
+    let lead;
+    if(i === 0) lead = "The first option is";
+    else if(i === list.length-1) lead = (list.length === 2) ? "The other option is" : "And the " + ["","","third","fourth"][i] + " one is";
+    else lead = "The second one is";
+    t += lead + " (" + EN_KIND[o.kind] + ") " + (o.en || o.ko) + "/\n";
+  });
+  t += "Please return your seat to the upright position during meal service/ for the comfort of the passenger behind you./\n";
+  t += "Please note that/ some of the options may become unavailable.\n";
+  t += "Also, hot " + (soup?"soup and beverage":"beverage") + " service may be limited/ due to turbulence./\n";
+  t += "Thank you for understanding./";
+  return t;
+}
+function card(tag, text){
+  const html = esc(text).split("\n").map(l => "<p>" + l.replace(/\//g,'<span class="sl">/</span>') + "</p>").join("");
+  return '<div class="script" data-raw="' + esc(text).replace(/"/g,"&quot;") + '"><div class="tag">'+tag+'</div>'+html+
+    '<div class="tools"><button class="btn copy" type="button">복사</button>'+
+    '<div class="sizer"><button type="button" data-s="-">가－</button><button type="button" data-s="+">가＋</button></div></div></div>';
+}
+let paSize = 20;
+document.getElementById("make").onclick = () => {
+  const out = document.getElementById("out");
+  const head = [document.getElementById("fno").value.trim(), document.getElementById("rt").value.trim()].filter(Boolean).join(" · ");
+  let html = "";
+  [1,2].forEach(i => {
+    const m = document.getElementById("m"+i), list = collect(m);
+    if(!list.length) return;
+    const soup = m.querySelector(".soup").checked;
+    const label = (head ? head + " | " : "") + (i===1 ? "1st Meal" : "2nd Meal");
+    html += card(label + " · 한국어", buildKo(list,i,soup));
+    html += card(label + " · English", buildEn(list,i,soup));
+  });
+  out.innerHTML = html || '<div class="script"><p style="font-size:16px">메뉴를 하나 이상 입력하세요.</p></div>';
+  out.querySelectorAll(".copy").forEach(b => {
+    b.onclick = () => {
+      const raw = b.closest(".script").getAttribute("data-raw").replace(/&quot;/g,'"').replace(/&lt;/g,"<").replace(/&amp;/g,"&");
+      const ta = document.createElement("textarea");
+      ta.value = raw; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); }catch(e){}
+      if(navigator.clipboard) navigator.clipboard.writeText(raw).catch(()=>{});
+      document.body.removeChild(ta);
+      const o = b.textContent; b.textContent = "복사됨"; setTimeout(()=>b.textContent=o,1200);
+    };
+  });
+  out.querySelectorAll(".sizer button").forEach(b => {
+    b.onclick = () => {
+      paSize = Math.min(34, Math.max(15, paSize + (b.dataset.s==="+"?2:-2)));
+      document.documentElement.style.setProperty("--pa-size", paSize+"px");
+    };
+  });
+  out.scrollIntoView({behavior:"smooth", block:"start"});
+};
+
+document.getElementById("ai").onclick = async () => {
+  const stat = document.getElementById("aistat");
+  const rows = [...document.querySelectorAll(".opt")].filter(o => o.querySelector(".ko").value.trim());
+  if(!rows.length){ stat.className="stat"; stat.textContent = "먼저 한글 메뉴를 입력하세요."; return; }
+  stat.className="stat"; stat.textContent = "다듬는 중…";
+  const items = rows.map(o => o.querySelector(".ko").value.trim());
+  try{
+    const r = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",
+        content:"다음은 대한항공 기내식 한글 메뉴명이다. 각각을 기내 방송용 영문 메뉴명으로 옮겨라. "+
+        "항공사 기내방송 관례를 따르고(예: 낙지덮밥 → Spicy stir-fried octopus with steamed rice), 마침표 없이 명사구로만. "+
+        "오직 JSON 문자열 배열만 출력하고 다른 말은 하지 마라. 입력: "+JSON.stringify(items)}]})
+    });
+    const d = await r.json();
+    const txt = d.content.filter(c=>c.type==="text").map(c=>c.text).join("").replace(/```json|```/g,"").trim();
+    const arr = JSON.parse(txt);
+    rows.forEach((o,i) => { if(arr[i]){ o.querySelector(".eng").value = arr[i]; o.querySelector(".auto").textContent = "AI 변환"; } });
+    stat.className="stat good"; stat.textContent = "영문을 다듬었습니다.";
+  }catch(e){
+    stat.className="stat"; stat.textContent = "연결이 안 됩니다. 자동 변환 결과를 그대로 쓰거나 직접 고쳐 주세요.";
+  }
+};
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
