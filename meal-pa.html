@@ -66,6 +66,13 @@
   .stat{font-size:13px;margin-top:10px;min-height:18px;color:var(--ink-soft)}
   .stat.good{color:var(--ok);font-weight:600}
   .stat.warn{color:var(--slash);font-weight:600}
+  .hrow{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:12px 0}
+  .hrow:first-child{border-top:none}
+  .hmain{flex:1;min-width:0;cursor:pointer}
+  .hmain b{display:block;font-size:15px;font-weight:600}
+  .hmain span{font-size:12px;color:var(--ink-soft)}
+  .hdel{background:none;border:none;color:var(--ink-soft);font-size:13px;cursor:pointer;text-decoration:underline;padding:4px}
+  .hempty{font-size:13px;color:var(--ink-soft);padding:6px 0}
   .filebtn{display:block;width:100%;padding:14px;border:1px dashed var(--line);border-radius:8px;
     text-align:center;font-weight:600;color:var(--signal);background:var(--card);cursor:pointer}
   #shot{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
@@ -92,7 +99,7 @@
       <path d="M12 35.5 h13" stroke="#C2542B" stroke-width="2.4" stroke-linecap="round"/>
     </svg>
     <div>
-      <h1>밀 방송문 <span class="ver">v10</span></h1>
+      <h1>밀 방송문 <span class="ver">v12</span></h1>
       <p>크루넷 화면을 넣으면 한국어·영어 방송문이 만들어집니다.</p>
     </div>
   </div>
@@ -101,6 +108,9 @@
 <div class="flight">
   <input id="fno" placeholder="편명 (예: KE0054)" autocomplete="off">
   <input id="rt" placeholder="구간 (예: HNL-ICN)" autocomplete="off">
+</div>
+<div class="flight">
+  <input id="memo" placeholder="메모 (예: 야간, 서울팀, 뒤갤리)" autocomplete="off">
 </div>
 
 <section>
@@ -158,6 +168,14 @@
 <div class="stat" id="aistat"></div>
 
 <div id="out"></div>
+
+<section id="histbox">
+  <h2>지난 방송문</h2>
+  <p class="hint">만든 방송문이 이 기기에 남습니다. 눌러서 다시 불러오세요.</p>
+  <input id="hq" placeholder="편명·구간·메모·메뉴로 찾기" autocomplete="off">
+  <div id="hist" style="margin-top:6px"></div>
+  <div class="addrow"><button class="btn wide" id="histclear" type="button">전체 지우기</button></div>
+</section>
 
 <p class="note">읽을 때 <span style="color:var(--slash);font-weight:700">/</span> 에서 한 번 끊어 읽으세요.</p>
 
@@ -550,6 +568,7 @@ document.getElementById("make").onclick = () => {
     };
   });
   out.scrollIntoView({behavior:"smooth", block:"start"});
+  hAdd(snapshot());
 };
 
 document.getElementById("ai").onclick = async () => {
@@ -682,6 +701,97 @@ document.getElementById("prep").onclick = async () => {
     st.textContent = "실패: " + (e && e.message ? e.message : e);
   }
 };
+
+/* ── 6. 지난 방송문 기록 ────────────────────────────────── */
+const HKEY = "mealpa.history";
+function hLoad(){
+  try{ return JSON.parse(localStorage.getItem(HKEY) || "[]"); }
+  catch(e){ return []; }
+}
+function hSave(list){
+  try{ localStorage.setItem(HKEY, JSON.stringify(list.slice(0,20))); }
+  catch(e){}
+}
+function snapshot(){
+  const grab = i => {
+    const m = document.getElementById("m"+i);
+    return {soup: m.querySelector(".soup").checked, list: collect(m)};
+  };
+  return {
+    t: Date.now(),
+    fno: document.getElementById("fno").value.trim(),
+    rt: document.getElementById("rt").value.trim(),
+    memo: document.getElementById("memo").value.trim(),
+    m1: grab(1), m2: grab(2)
+  };
+}
+function hAdd(entry){
+  if(!entry.m1.list.length && !entry.m2.list.length) return;
+  const list = hLoad();
+  const key = e => (e.fno||"") + "|" + (e.rt||"") + "|" + (e.memo||"") + "|" +
+    [1,2].map(i => (e["m"+i].list||[]).map(o => o.ko).join(",")).join("||");
+  const k = key(entry);
+  const next = [entry].concat(list.filter(e => key(e) !== k));
+  hSave(next);
+  hRender();
+}
+function hText(e){
+  const all = [].concat(e.m1.list || [], e.m2.list || []);
+  return [e.fno, e.rt, e.memo].concat(all.map(o => o.ko), all.map(o => o.en))
+    .filter(Boolean).join(" ").toLowerCase();
+}
+function hRender(){
+  const box = document.getElementById("hist");
+  const q = (document.getElementById("hq").value || "").trim().toLowerCase();
+  const all0 = hLoad();
+  const list = q ? all0.filter(e => hText(e).includes(q)) : all0;
+  if(!all0.length){ box.innerHTML = '<div class="hempty">아직 없습니다.</div>'; return; }
+  if(!list.length){ box.innerHTML = '<div class="hempty">찾는 방송문이 없습니다.</div>'; return; }
+  box.innerHTML = "";
+  list.forEach(e => {
+    const d = new Date(e.t);
+    const when = (d.getMonth()+1) + "/" + d.getDate();
+    const all = [].concat(e.m1.list || [], e.m2.list || []);
+    const emo = all.map(o => KIND_EMOJI[o.kind] || "").join("");
+    const title = [e.fno, e.rt, e.memo].filter(Boolean).join(" · ") || (all[0] ? all[0].ko : "방송문");
+    const sub = when + "  " + emo + "  " + all.map(o => o.ko).join(" / ");
+    const row = document.createElement("div");
+    row.className = "hrow";
+    row.innerHTML = '<div class="hmain"><b></b><span></span></div>' +
+                    '<button class="hdel" type="button">삭제</button>';
+    row.querySelector("b").textContent = title;
+    row.querySelector("span").textContent = sub;
+    row.querySelector(".hmain").onclick = () => hRestore(e);
+    row.querySelector(".hdel").onclick = () => {
+      hSave(hLoad().filter(x => x.t !== e.t)); hRender();
+    };
+    box.appendChild(row);
+  });
+}
+function hRestore(e){
+  document.getElementById("fno").value = e.fno || "";
+  document.getElementById("rt").value = e.rt || "";
+  document.getElementById("memo").value = e.memo || "";
+  [1,2].forEach(i => {
+    const m = document.getElementById("m"+i);
+    const box = m.querySelector(".opts");
+    const data = e["m"+i] || {list:[], soup:false};
+    box.innerHTML = "";
+    const rows = data.list.length ? data.list : [];
+    (rows.length ? rows : [{},{},{}]).forEach((item, idx) => {
+      const row = optRow(idx);
+      box.appendChild(row);
+      if(item && item.ko) fillRow(row, item);
+    });
+    m.querySelector(".soup").checked = !!data.soup;
+  });
+  document.getElementById("make").click();
+}
+document.getElementById("hq").addEventListener("input", hRender);
+document.getElementById("histclear").onclick = () => {
+  hSave([]); hRender();
+};
+hRender();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
