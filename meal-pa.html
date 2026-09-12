@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
   :root{
-    --ink:#16233B; --ink-soft:#5A6B87; --paper:#F2F4F8; --card:#FFFFFF;
+    --ink:#0F1A2E; --ink-soft:#48587A; --paper:#F2F4F8; --card:#FFFFFF;
     --line:#D8DEE9; --signal:#0B6E99; --slash:#C2542B; --ok:#1D7A5F; --radius:10px;
   }
   *{box-sizing:border-box}
@@ -23,10 +23,13 @@
   .wrap{max-width:680px;margin:0 auto;padding:0 16px}
   header{padding:28px 0 16px}
   h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 4px}
-  header p{margin:0;color:var(--ink-soft);font-size:13px;line-height:1.45}
-  .brand{display:flex;align-items:center;gap:12px}
-  .brand h1{font-size:23px;margin:0 0 2px}
-  .ver{font-size:12px;font-weight:600;color:var(--ink-soft);vertical-align:middle}
+  header p{margin:0;color:#B9C6D8;font-size:13px;line-height:1.45}
+  header{padding:18px 0 20px}
+  .brand{display:flex;align-items:center;gap:13px;
+    background:#0B1220;border-radius:16px;padding:18px 18px 17px}
+  .brand h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:0 0 3px;color:#FFFFFF}
+  .ver{font-size:11px;font-weight:700;color:#0B1220;background:#FFFFFF;
+    border-radius:999px;padding:2px 7px;vertical-align:middle;letter-spacing:0}
   .flight{display:flex;gap:8px;margin:14px 0 16px}
   .flight input{flex:1;min-width:0}
   input,select,button,textarea{font-family:inherit;font-size:15px}
@@ -73,6 +76,14 @@
   .hmain span{font-size:12px;color:var(--ink-soft)}
   .hdel{background:none;border:none;color:var(--ink-soft);font-size:13px;cursor:pointer;text-decoration:underline;padding:4px}
   .hempty{font-size:13px;color:var(--ink-soft);padding:6px 0}
+  #trans:empty{display:none}
+  #trans{margin-top:14px}
+  .trow{border-top:1px solid var(--line);padding:12px 0}
+  .trow:first-of-type{border-top:none}
+  .trow b{display:block;font-size:17px;font-weight:600;margin-bottom:4px}
+  .trow span{display:block;font-size:16px;color:var(--ink);line-height:1.5}
+  .trow span{display:flex;gap:8px;align-items:baseline}
+  .trow .flag{font-style:normal;font-size:18px;flex:none;width:24px}
   .filebtn{display:block;width:100%;padding:14px;border:1px dashed var(--line);border-radius:8px;
     text-align:center;font-weight:600;color:var(--signal);background:var(--card);cursor:pointer}
   #shot{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
@@ -92,14 +103,12 @@
 
 <header>
   <div class="brand">
-    <svg viewBox="0 0 48 48" width="42" height="42" aria-hidden="true">
-      <circle cx="24" cy="24" r="23" fill="#16233B"/>
+    <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
       <path d="M10 27.5 L38 14 L30.5 30 L23 27.8 L19.6 34 L17.8 27.2 Z" fill="#FFFFFF"/>
-      <path d="M23 27.8 L38 14 L19.6 34 Z" fill="#8FB2CC"/>
-      <path d="M12 35.5 h13" stroke="#C2542B" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M23 27.8 L38 14 L19.6 34 Z" fill="#9FB8D0"/>
     </svg>
     <div>
-      <h1>밀 방송문 <span class="ver">v12</span></h1>
+      <h1>밀 방송문 <span class="ver">v18</span></h1>
       <p>크루넷 화면을 넣으면 한국어·영어 방송문이 만들어집니다.</p>
     </div>
   </div>
@@ -164,6 +173,10 @@
 </section>
 
 <button class="make" id="make" type="button">방송문 만들기</button>
+<div class="addrow">
+  <button class="btn wide" id="tr" type="button">🇯🇵 일본어 · 🇨🇳 중국어 · 🇻🇳 베트남어</button>
+</div>
+<div id="trans"></div>
 <div class="addrow"><button class="btn wide" id="ai" type="button">영문 AI로 다듬기 (인터넷 필요)</button></div>
 <div class="stat" id="aistat"></div>
 
@@ -700,6 +713,172 @@ document.getElementById("prep").onclick = async () => {
     progress(null);
     st.textContent = "실패: " + (e && e.message ? e.message : e);
   }
+};
+
+/* ── 7. 일본어·중국어·베트남어 메뉴 ─────────────────────── */
+/* 한글 메뉴 → 일본어·중국어 (오프라인 조합 사전) */
+const T_MOD = {"매콤한":["辛口の","香辣","cay"],"매운맛":["辛口の","香辣","cay"],"매운":["辛口の","香辣","cay"],
+"얼큰한":["辛口の","香辣","cay"],"순한":["マイルドな","清淡","nhẹ"],"구운":["グリル","烤","nướng"],"그릴드":["グリル","烤","nướng"],
+"볶은":["炒め","炒","xào"],"볶음":["炒め","炒","xào"],"튀긴":["揚げ","炸","chiên"],"찐":["蒸し","蒸","hấp"],
+"조린":["煮込み","炖","kho"],"훈제":["スモーク","烟熏","hun khói"],"차가운":["冷製","凉拌","lạnh"]};
+
+const T_SAUCE = {"토마토 크림소스":["トマトクリームソース","番茄奶油酱","sốt kem cà chua"],"토마토크림소스":["トマトクリームソース","番茄奶油酱","sốt kem cà chua"],
+"토마토소스":["トマトソース","番茄酱","sốt cà chua"],"로제소스":["ロゼソース","粉红酱","sốt hồng"],"크림소스":["クリームソース","奶油酱","sốt kem"],
+"블랙빈소스":["黒豆ソース","黑豆酱","sốt tương đen"],"짜장소스":["チャジャンソース","炸酱","sốt tương đen"],
+"레드 와인소스":["赤ワインソース","红酒汁","sốt vang đỏ"],"레드와인소스":["赤ワインソース","红酒汁","sốt vang đỏ"],
+"화이트 와인소스":["白ワインソース","白葡萄酒汁","sốt vang trắng"],"화이트와인소스":["白ワインソース","白葡萄酒汁","sốt vang trắng"],
+"굴소스":["オイスターソース","蚝油","sốt dầu hào"],"데리야끼소스":["照り焼きソース","照烧汁","sốt teriyaki"],"데리야키소스":["照り焼きソース","照烧汁","sốt teriyaki"],
+"고추장소스":["コチュジャンソース","辣椒酱","sốt ớt Hàn Quốc"],"머쉬룸소스":["きのこソース","蘑菇酱","sốt nấm"],"버섯소스":["きのこソース","蘑菇酱","sốt nấm"],
+"간장소스":["醤油ソース","酱油汁","sốt xì dầu"],"칠리소스":["チリソース","辣椒汁","sốt ớt"],"바비큐소스":["バーベキューソース","烧烤汁","sốt BBQ"],
+"미트소스":["ミートソース","肉酱","sốt thịt bằm"],"카레소스":["カレーソース","咖喱汁","sốt cà ri"],"페스토":["ジェノベーゼ","青酱","sốt pesto"]};
+
+const T_DISH = {"비빔밥":["ビビンバ","拌饭","cơm trộn Hàn Quốc"],"불고기":["プルコギ","韩式烤牛肉","bò nướng Hàn Quốc"],
+"제육볶음":["豚肉の辛味炒め","辣炒猪肉","thịt heo xào cay"],"제육":["豚肉の辛味炒め","辣炒猪肉","thịt heo xào cay"],"닭갈비":["鶏肉の辛味炒め","辣炒鸡肉","gà xào cay"],
+"낙지볶음":["タコの辛味炒め","辣炒章鱼","bạch tuộc xào cay"],"오징어볶음":["イカの辛味炒め","辣炒鱿鱼","mực xào cay"],
+"김치찌개":["キムチチゲ","泡菜汤","canh kim chi"],"된장찌개":["テンジャンチゲ","大酱汤","canh tương đậu"],"순두부찌개":["スンドゥブチゲ","嫩豆腐汤","canh đậu hũ non"],
+"부대찌개":["プデチゲ","部队火锅","lẩu xúc xích"],"갈비탕":["カルビタン","牛排骨汤","canh sườn bò"],"육개장":["ユッケジャン","辣牛肉汤","canh bò cay"],
+"삼계탕":["参鶏湯","参鸡汤","gà hầm sâm"],"설렁탕":["ソルロンタン","牛骨汤","canh xương bò"],"잡채":["チャプチェ","杂菜","miến trộn"],
+"떡갈비":["トッカルビ","韩式牛肉饼","chả bò nướng"],"마파두부":["麻婆豆腐","麻婆豆腐","đậu hũ Tứ Xuyên"],"탕수육":["酢豚","糖醋肉","thịt heo chua ngọt"],
+"깐풍기":["鶏の甘辛揚げ","干烹鸡","gà chiên chua cay"],"칠리새우":["エビチリ","辣汁虾","tôm sốt ớt"],"짜장면":["ジャージャー麺","炸酱面","mì tương đen"],
+"짬뽕":["チャンポン","海鲜辣汤面","mì hải sản cay"],"우동":["うどん","乌冬面","mì udon"],"냉면":["冷麺","冷面","mì lạnh"],
+"스트로가노프":["ビーフストロガノフ","俄式牛肉","bò hầm kiểu Nga"],"스튜":["シチュー","炖菜","món hầm"],
+"스크램블드에그":["スクランブルエッグ","炒蛋","trứng bác"],"스크램블에그":["スクランブルエッグ","炒蛋","trứng bác"],
+"오믈렛":["オムレツ","煎蛋卷","trứng ốp lết"],"함박스테이크":["ハンバーグ","汉堡肉排","chả thịt bò"],"미트볼":["ミートボール","肉丸","thịt viên"],
+"라자냐":["ラザニア","千层面","mì lasagna"],"리조또":["リゾット","烩饭","cơm risotto"],"커틀렛":["カツレツ","炸肉排","thịt chiên xù"],
+"돈까스":["とんかつ","炸猪排","heo chiên xù"],"커리":["カレー","咖喱","cà ri"],"카레":["カレー","咖喱","cà ri"],
+"나시고랭":["ナシゴレン","印尼炒饭","cơm chiên Indonesia"],"팟타이":["パッタイ","泰式炒河粉","phở xào Thái"],"쌀국수":["フォー","越南米粉","phở"],
+"딤섬":["点心","点心","há cảo"],"군만두":["焼き餃子","煎饺","há cảo chiên"],"만두":["餃子","饺子","há cảo"],
+"샌드위치":["サンドイッチ","三明治","bánh mì kẹp"],"푸실리 파스타":["フジッリパスタ","螺旋意面","mì xoắn Ý"],"푸실리":["フジッリ","螺旋意面","mì xoắn"],
+"파스타":["パスタ","意面","mì Ý"],"스파게티":["スパゲッティ","意大利面","mì spaghetti"],"샐러드":["サラダ","沙拉","salad"],"스테이크":["ステーキ","牛排","bít tết"]};
+
+const T_MAIN = {"소고기":["牛肉","牛肉","thịt bò"],"쇠고기":["牛肉","牛肉","thịt bò"],"돼지고기":["豚肉","猪肉","thịt heo"],
+"닭고기":["鶏肉","鸡肉","thịt gà"],"치킨":["チキン","鸡肉","thịt gà"],"오리고기":["鴨肉","鸭肉","thịt vịt"],"생선":["白身魚","鱼","cá"],
+"연어":["サーモン","三文鱼","cá hồi"],"대구":["タラ","鳕鱼","cá tuyết"],"새우":["エビ","虾","tôm"],"낙지":["タコ","章鱼","bạch tuộc"],
+"문어":["タコ","章鱼","bạch tuộc"],"오징어":["イカ","鱿鱼","mực"],"해물":["シーフード","海鲜","hải sản"],"두부":["豆腐","豆腐","đậu hũ"],
+"채소":["野菜","蔬菜","rau củ"],"야채":["野菜","蔬菜","rau củ"],"달걀":["卵","鸡蛋","trứng"],"계란":["卵","鸡蛋","trứng"],
+"버섯":["きのこ","蘑菇","nấm"],"가지":["なす","茄子","cà tím"],"전복":["アワビ","鲍鱼","bào ngư"],"게살":["カニ身","蟹肉","thịt cua"],
+"소시지":["ソーセージ","香肠","xúc xích"],"베이컨":["ベーコン","培根","thịt xông khói"],"햄":["ハム","火腿","giăm bông"],"갈비":["カルビ","排骨","sườn bò"]};
+
+const T_SIDE = {"달걀 볶음밥":["卵チャーハン","蛋炒饭","cơm chiên trứng"],"계란 볶음밥":["卵チャーハン","蛋炒饭","cơm chiên trứng"],
+"새우 볶음밥":["エビチャーハン","虾仁炒饭","cơm chiên tôm"],"볶음밥":["チャーハン","炒饭","cơm chiên"],"쌀밥":["ライス","米饭","cơm trắng"],
+"흰밥":["ライス","米饭","cơm trắng"],"밥":["ライス","米饭","cơm trắng"],"웨지 감자":["ポテトウェッジ","薯角","khoai tây múi cau"],
+"매쉬드포테이토":["マッシュポテト","土豆泥","khoai tây nghiền"],"으깬 감자":["マッシュポテト","土豆泥","khoai tây nghiền"],
+"구운 감자":["ローストポテト","烤土豆","khoai tây nướng"],"감자":["マッシュポテト","土豆泥","khoai tây nghiền"],
+"국수":["麺","面条","mì"],"면":["麺","面条","mì"],"빵":["パン","面包","bánh mì"],"샐러드":["サラダ","沙拉","salad"],
+"김치":["キムチ","泡菜","kim chi"],"브로콜리":["ブロッコリー","西兰花","bông cải xanh"],"시금치":["ほうれん草","菠菜","rau chân vịt"]};
+
+function vcap(t){ return t ? t.charAt(0).toUpperCase() + t.slice(1) : t; }
+const tkeys = o => Object.keys(o).sort((a,b)=>b.length-a.length);
+
+// 면·밥처럼 곁들이로 가는 것과, 주재료가 앞에 붙는 것
+const CARB = new Set(["파스타","스파게티","푸실리","푸실리 파스타","우동","냉면","짜장면","짬뽕","쌀국수"]);
+const COMPOUND = new Set(["커리","카레","리조또","샌드위치","샐러드","만두","군만두"]);
+// 요리 이름에 이미 그 재료가 들어있으면 주재료를 또 붙이지 않는다
+const IMPLIES = {"스트로가노프":["소고기","쇠고기","갈비"],"불고기":["소고기","쇠고기"],
+"제육":["돼지고기"],"제육볶음":["돼지고기"],"닭갈비":["닭고기","치킨"],"탕수육":["돼지고기"],
+"깐풍기":["닭고기","치킨"],"돈까스":["돼지고기"],"낙지볶음":["낙지","문어"],"오징어볶음":["오징어"],
+"칠리새우":["새우"],"삼계탕":["닭고기","치킨"],"갈비탕":["갈비","소고기","쇠고기"],
+"육개장":["소고기","쇠고기"],"설렁탕":["소고기","쇠고기"],"마파두부":["두부"],
+"떡갈비":["소고기","쇠고기","갈비"],"스크램블드에그":["달걀","계란"],"스크램블에그":["달걀","계란"],
+"오믈렛":["달걀","계란"],"함박스테이크":["소고기","쇠고기"],"미트볼":["소고기","쇠고기"]};
+
+function scanKo(str){
+  let s = " " + (str||"").replace(/요리/g," ") + " ";
+  const g = {mods:[], sauce:null, dish:null, dishKey:null, main:null, mainKey:null, sides:[], don:false, juk:false};
+  if(/덮밥/.test(s)){ g.don = true; s = s.split("덮밥").join(" "); }
+  if(/죽\s*$/.test(str)){ g.juk = true; s = s.replace(/죽/g," "); }
+  const take = (dict, set) => {
+    for(const k of tkeys(dict)){ if(s.includes(k)){ set(k, dict[k]); s = s.split(k).join(" "); } }
+  };
+  take(T_SAUCE, (k,v) => { if(!g.sauce) g.sauce = v; });
+  take(T_DISH,  (k,v) => { if(!g.dish){ g.dish = v; g.dishKey = k; } });
+  take(T_SIDE,  (k,v) => { if(g.sides.length < 2) g.sides.push(v); });   // 볶음밥이 '볶음'으로 쪼개지기 전에 먼저
+  take(T_MOD,   (k,v) => { if(!g.mods.some(m => m[0] === v[0])) g.mods.push(v); });
+  take(T_MAIN,  (k,v) => { if(!g.main){ g.main = v; g.mainKey = k; } });
+  return g;
+}
+
+// i: 0=일본어, 1=중국어
+function toLang(ko, i){
+  const g = scanKo(ko);
+  const J = i === 0;
+  let head = null, extra = [];
+
+  if(g.dish && g.main && (IMPLIES[g.dishKey] || []).includes(g.mainKey)) g.main = null;
+
+  if(g.dish && g.main){
+    if(CARB.has(g.dishKey)){ head = g.main[i]; extra.push(g.dish[i]); }
+    else if(COMPOUND.has(g.dishKey)){
+      head = i === 2 ? g.dish[2] + " " + g.main[2] : g.main[i] + g.dish[i];
+    }
+    else { head = g.dish[i]; extra.push(g.main[i]); }
+  }else{
+    head = g.dish ? g.dish[i] : (g.main ? g.main[i] : null);
+  }
+  if(!head && g.sides.length){ head = g.sides.shift()[i]; }
+  if(!head) return "";
+
+  const mods = g.mods.map(m => m[i]).join("");
+  if(g.juk) return i === 2 ? vcap(["Cháo", head, mods].filter(Boolean).join(" "))
+                           : mods + head + (J ? "がゆ" : "粥");
+
+  let out;
+  if(i === 2){        // 베트남어는 꾸미는 말이 뒤에 온다
+    out = [head, mods, g.sauce ? g.sauce[2] : ""].filter(Boolean).join(" ");
+    if(g.don) return vcap(out + " với cơm trắng");
+    const tailV = extra.concat(g.sides.map(x => x[2])).filter(Boolean);
+    if(tailV.length) out += " ăn kèm " + tailV.join(" và ");
+    return vcap(out);
+  }
+  out = J ? (g.sauce ? g.sauce[0] + "の" : "") + mods + head
+          : mods + (g.sauce ? g.sauce[1] : "") + head;
+  if(g.don) return out + (J ? "丼" : "盖饭");
+
+  const tail = extra.concat(g.sides.map(x => x[i])).filter(Boolean);
+  if(tail.length) out += J ? "、" + tail.join("と") + "添え" : "配" + tail.join("和");
+  return out;
+}
+
+
+
+document.getElementById("tr").onclick = () => {
+  const box = document.getElementById("trans");
+  const rows = [];
+  [1,2].forEach(i => {
+    collect(document.getElementById("m"+i)).forEach(o => {
+      if(!o.ko) return;
+      rows.push({emo: KIND_EMOJI[o.kind] || "", ko: o.ko, en: o.en,
+                 ja: toLang(o.ko, 0), zh: toLang(o.ko, 1), vi: toLang(o.ko, 2)});
+    });
+  });
+  if(!rows.length){
+    box.innerHTML = '<div class="script"><p style="font-size:16px">메뉴를 먼저 입력하세요.</p></div>';
+    return;
+  }
+  const line = (flag, txt) =>
+    '<span><i class="flag">' + flag + '</i>' + esc(txt || "—") + '</span>';
+  let html = '<div class="script"><div class="tag">손님 안내용 메뉴</div>';
+  rows.forEach(r => {
+    html += '<div class="trow">' +
+      '<b>' + esc(r.emo + " " + r.ko) + '</b>' +
+      (r.en ? line("🇬🇧", r.en) : "") +
+      line("🇯🇵", r.ja) +
+      line("🇨🇳", r.zh) +
+      line("🇻🇳", r.vi) + '</div>';
+  });
+  const raw = rows.map(r => r.ko + "\nEN " + (r.en||"") + "\nJP " + (r.ja||"") +
+    "\nCN " + (r.zh||"") + "\nVN " + (r.vi||"")).join("\n\n");
+  html += '<div class="tools"><button class="btn trcopy" type="button">복사</button></div></div>';
+  box.innerHTML = html;
+  box.querySelector(".trcopy").onclick = () => {
+    const ta = document.createElement("textarea");
+    ta.value = raw; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    if(navigator.clipboard) navigator.clipboard.writeText(raw).catch(()=>{});
+    document.body.removeChild(ta);
+  };
+  box.scrollIntoView({behavior:"smooth", block:"start"});
 };
 
 /* ── 6. 지난 방송문 기록 ────────────────────────────────── */
