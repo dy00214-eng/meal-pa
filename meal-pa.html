@@ -92,7 +92,7 @@
       <path d="M12 35.5 h13" stroke="#C2542B" stroke-width="2.4" stroke-linecap="round"/>
     </svg>
     <div>
-      <h1>밀 방송문 <span class="ver">v9</span></h1>
+      <h1>밀 방송문 <span class="ver">v10</span></h1>
       <p>크루넷 화면을 넣으면 한국어·영어 방송문이 만들어집니다.</p>
     </div>
   </div>
@@ -313,9 +313,10 @@ function dedupeWords(s){
   return (s||"").split(/\s+/).filter((w,i,a) => i===0 || w !== a[i-1]).join(" ");
 }
 
-function parseCrewnet(text, koStarts){
+function parseCrewnet(text, koStarts, fromStart){
   const meals = {1:[],2:[],3:[]};
   let meal = 1, cur = null;
+  let started = !!fromStart;   // 1ST MEAL 이 나오기 전 머리글(날짜·편명·구간)은 무시
   const push = () => {
     if(cur && (cur.ko || cur.en)){
       cur.ko = dedupeWords(cur.ko.trim().replace(/[\s,·]+$/,""));
@@ -326,10 +327,11 @@ function parseCrewnet(text, koStarts){
     cur = null;
   };
   for(const raw of text.split(/\n/)){
-    if(/(1ST|FIRST)\s*MEAL/i.test(raw)){ push(); meal = 1; continue; }
-    if(/(2ND|SECOND)\s*MEAL/i.test(raw)){ push(); meal = 2; continue; }
-    if(/(IN-?BETWEEN|3RD|THIRD|REFRESH|SNACK|LIGHT\s*MEAL|SPECIAL\s*MEAL)/i.test(raw)){ push(); meal = 3; continue; }
+    if(/(1ST|FIRST)\s*MEAL/i.test(raw)){ push(); meal = 1; started = true; continue; }
+    if(/(2ND|SECOND)\s*MEAL/i.test(raw)){ push(); meal = 2; started = true; continue; }
+    if(/(IN-?BETWEEN|3RD|THIRD|REFRESH|SNACK|LIGHT\s*MEAL|SPECIAL\s*MEAL)/i.test(raw)){ push(); meal = 3; started = true; continue; }
 
+    if(!started) continue;
     let l = raw
       .replace(/\(\s*\d{1,3}\s*%\s*\)/g," ")   // (60%)
       .replace(/#\S+/g," ")                    // #PASTA, #감자
@@ -373,7 +375,10 @@ function parseCrewnet(text, koStarts){
 // KOREAN/WESTERN 같은 영문 종류를 못 읽었으면 한글 종류를 기준으로 다시 시도
 function parseAuto(text){
   const hasEnKind = /\b(KOREAN|CHINESE|WESTERN|JAPANESE|ASIAN)\b/i.test(text);
-  return parseCrewnet(text, !hasEnKind);
+  let m = parseCrewnet(text, !hasEnKind, false);
+  // MEAL 머리글이 아예 안 읽혔으면 처음부터 훑는다
+  if(!m[1].length && !m[2].length) m = parseCrewnet(text, !hasEnKind, true);
+  return m;
 }
 
 /* ── 4. 화면 ───────────────────────────────────────────── */
