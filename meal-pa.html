@@ -108,7 +108,7 @@
       <path d="M23 27.8 L38 14 L19.6 34 Z" fill="#9FB8D0"/>
     </svg>
     <div>
-      <h1>밀 방송문 <span class="ver">v21</span></h1>
+      <h1>밀 방송문 <span class="ver">v23</span></h1>
       <p>크루넷 화면을 넣으면 한국어·영어 방송문이 만들어집니다.</p>
     </div>
   </div>
@@ -209,7 +209,7 @@ window.addEventListener("unhandledrejection", e => showErr("실패: " + (e.reaso
 /* ── 1. 확정 메뉴 사전 ──────────────────────────────────── */
 const EXACT = {
 "낙지덮밥":["한식","Spicy stir-fried octopus with steamed rice"],
-"비빔밥":["한식","Bibimbap, Korean style mixed rice with vegetables"],
+"비빔밥":["한식","Bibimbap, Korean style beef with rice"],
 "불고기덮밥":["한식","Bulgogi, marinated beef with steamed rice"],
 "불고기와 도토리묵밥":["한식","Bulgogi with chilled acorn jelly and rice soup"],
 "제육덮밥":["한식","Spicy stir-fried pork with steamed rice"],
@@ -253,7 +253,7 @@ const SAUCE = {"로제소스":"rosé sauce","토마토 크림소스":"tomato cre
 "스위트칠리소스":"sweet chili sauce","허니머스터드":"honey mustard sauce","페스토":"pesto sauce"};
 const DISH = {"제육볶음":"spicy stir-fried pork","낙지볶음":"spicy stir-fried octopus",
 "오징어볶음":"spicy stir-fried squid","닭갈비":"spicy stir-fried chicken","불고기":"bulgogi",
-"비빔밥":"bibimbap","잡채":"japchae, stir-fried glass noodles","떡갈비":"grilled short rib patty",
+"비빔밥":"bibimbap, Korean style beef with rice","잡채":"japchae, stir-fried glass noodles","떡갈비":"grilled short rib patty",
 "김치찌개":"kimchi stew","된장찌개":"soybean paste stew","순두부찌개":"soft tofu stew",
 "부대찌개":"sausage stew","갈비탕":"short rib soup","육개장":"spicy beef soup",
 "삼계탕":"ginseng chicken soup","설렁탕":"beef bone soup","마파두부":"mapo tofu",
@@ -931,7 +931,7 @@ const tkeys = o => Object.keys(o).sort((a,b)=>b.length-a.length);
 
 // 면·밥처럼 곁들이로 가는 것과, 주재료가 앞에 붙는 것
 const CARB = new Set(["파스타","스파게티","푸실리","푸실리 파스타","우동","냉면","짜장면","짬뽕","쌀국수"]);
-const COMPOUND = new Set(["커리","카레","리조또","샌드위치","샐러드","만두","군만두","스튜","수프","그라탕","그라탱","스테이크","커틀렛","크림수프","포타주","죽"]);
+const COMPOUND = new Set(["커리","카레","리조또","샌드위치","샐러드","만두","군만두","스튜","수프","그라탕","그라탱","스테이크","커틀렛","크림수프","포타주","죽","파에야","초밥","볶음우동","샌드위치","랩","버거"]);
 // 요리 이름에 이미 그 재료가 들어있으면 주재료를 또 붙이지 않는다
 const IMPLIES = {"스트로가노프":["소고기","쇠고기","갈비"],"불고기":["소고기","쇠고기"],
 "제육":["돼지고기"],"제육볶음":["돼지고기"],"닭갈비":["닭고기","치킨"],"탕수육":["돼지고기"],
@@ -946,8 +946,22 @@ function scanKo(str){
   const g = {mods:[], sauce:null, dish:null, dishKey:null, main:null, mainKey:null, sides:[], don:false, juk:false};
   if(/덮밥/.test(s)){ g.don = true; s = s.split("덮밥").join(" "); }
   if(/죽\s*$/.test(str)){ g.juk = true; s = s.replace(/죽/g," "); }
+  const HAN = /[가-힣]/;
+  const cut = (str, k) => {
+    if(k.length > 1) return str.includes(k) ? str.split(k).join(" ") : null;
+    let i = str.indexOf(k), out = str, hit = false;
+    while(i >= 0){
+      const b = out[i-1] || " ", a = out[i+1] || " ";
+      if(!HAN.test(b) && !HAN.test(a)){ out = out.slice(0,i) + " " + out.slice(i+1); hit = true; }
+      i = out.indexOf(k, i+1);
+    }
+    return hit ? out : null;
+  };
   const take = (dict, set) => {
-    for(const k of tkeys(dict)){ if(s.includes(k)){ set(k, dict[k]); s = s.split(k).join(" "); } }
+    for(const k of tkeys(dict)){
+      const r = cut(s, k);
+      if(r !== null){ set(k, dict[k]); s = r; }
+    }
   };
   take(T_SAUCE, (k,v) => { if(!g.sauce) g.sauce = v; });
   take(T_DISH,  (k,v) => { if(!g.dish){ g.dish = v; g.dishKey = k; } });
