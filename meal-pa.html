@@ -26,6 +26,9 @@
   header p{margin:0;color:var(--ink-soft);font-size:13px;line-height:1.45}
   .brand{display:flex;align-items:center;gap:12px}
   .brand h1{font-size:23px;margin:0 0 2px}
+  .ver{font-size:12px;font-weight:600;color:var(--ink-soft);vertical-align:middle}
+  #errbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:99;
+    background:var(--slash);color:#fff;font-size:12px;padding:8px 12px;word-break:break-all}
   .flight{display:flex;gap:8px;margin:14px 0 16px}
   .flight input{flex:1;min-width:0}
   input,select,button,textarea{font-family:inherit;font-size:15px}
@@ -89,7 +92,7 @@
       <path d="M12 35.5 h13" stroke="#C2542B" stroke-width="2.4" stroke-linecap="round"/>
     </svg>
     <div>
-      <h1>밀 방송문</h1>
+      <h1>밀 방송문 <span class="ver">v6</span></h1>
       <p>크루넷 화면을 넣으면 한국어·영어 방송문이 만들어집니다.</p>
     </div>
   </div>
@@ -159,9 +162,19 @@
 <p class="note">읽을 때 <span style="color:var(--slash);font-weight:700">/</span> 에서 한 번 끊어 읽으세요.</p>
 
 <datalist id="menus"></datalist>
+<div id="errbar"></div>
 </div>
 
 <script>
+function showErr(msg){
+  const b = document.getElementById("errbar");
+  if(!b) return;
+  b.style.display = "block";
+  b.textContent = String(msg).slice(0,300);
+}
+window.addEventListener("error", e => showErr("오류: " + (e.message || e.type) + " @" + (e.filename||"") + ":" + (e.lineno||"")));
+window.addEventListener("unhandledrejection", e => showErr("실패: " + (e.reason && e.reason.message ? e.reason.message : e.reason)));
+
 /* ── 1. 확정 메뉴 사전 ──────────────────────────────────── */
 const EXACT = {
 "낙지덮밥":["한식","Spicy stir-fried octopus with steamed rice"],
@@ -608,7 +621,10 @@ const thrEl = document.getElementById("thr");
 thrEl.addEventListener("input", () => document.getElementById("thrv").textContent = thrEl.value);
 
 let lastFile = null;
-document.getElementById("pick").onclick = () => document.getElementById("shot").click();
+document.getElementById("pick").onclick = () => {
+  document.getElementById("ostat").textContent = "사진첩을 엽니다…";
+  document.getElementById("shot").click();
+};
 document.getElementById("shot").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0];
   if(!f) return;
@@ -650,6 +666,8 @@ async function readShot(f){
 
 document.getElementById("prep").onclick = async () => {
   const st = document.getElementById("prepstat");
+  st.textContent = "시작합니다…";
+  await new Promise(r => setTimeout(r, 30));
   st.textContent = "내려받는 중… 15MB 정도입니다";
   progress(0.02);
   try{
