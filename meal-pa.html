@@ -65,6 +65,19 @@
   .note{color:var(--ink-soft);font-size:13px;margin:18px 0 0}
   .stat{font-size:13px;margin-top:10px;min-height:18px;color:var(--ink-soft)}
   .stat.good{color:var(--ok);font-weight:600}
+  .stat.warn{color:var(--slash);font-weight:600}
+  .filebtn{display:block;width:100%;padding:14px;border:1px dashed var(--line);border-radius:8px;
+    text-align:center;font-weight:600;color:var(--signal);background:var(--card);cursor:pointer}
+  #shot{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .prep{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px;color:var(--ink-soft)}
+  .prep .btn{padding:8px 12px;font-size:13px;white-space:nowrap}
+  .thumb{margin-top:12px;border:1px solid var(--line);border-radius:8px;width:100%;display:none}
+  .slider{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--ink-soft)}
+  .slider input{flex:1}
+  .bar{height:4px;background:var(--line);border-radius:2px;margin-top:10px;overflow:hidden;display:none}
+  .bar i{display:block;height:100%;width:0;background:var(--signal);transition:width .2s}
+  #errbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:99;
+    background:var(--slash);color:#fff;font-size:12px;padding:8px 12px;word-break:break-all}
 </style>
 </head>
 <body>
@@ -79,7 +92,7 @@
       <path d="M12 35.5 h13" stroke="#C2542B" stroke-width="2.4" stroke-linecap="round"/>
     </svg>
     <div>
-      <h1>밀 방송문 <span class="ver">v7</span></h1>
+      <h1>밀 방송문 <span class="ver">v9</span></h1>
       <p>크루넷 화면을 넣으면 한국어·영어 방송문이 만들어집니다.</p>
     </div>
   </div>
@@ -89,6 +102,25 @@
   <input id="fno" placeholder="편명 (예: KE0054)" autocomplete="off">
   <input id="rt" placeholder="구간 (예: HNL-ICN)" autocomplete="off">
 </div>
+
+<section>
+  <h2>스크린샷으로 읽기</h2>
+  <p class="hint">사번 워터마크를 지운 뒤 글씨를 읽습니다. 미리 준비해두면 기내에서도 됩니다.</p>
+  <button class="filebtn" id="pick" type="button">사진 선택</button>
+  <input type="file" id="shot" accept="image/*">
+  <div class="slider">
+    <span>워터마크 지우기</span>
+    <input type="range" id="thr" min="90" max="200" value="150">
+    <span id="thrv">150</span>
+  </div>
+  <img id="prev" class="thumb" alt="">
+  <div class="bar" id="bar"><i></i></div>
+  <div class="stat" id="ostat"></div>
+  <div class="prep">
+    <button class="btn" id="prep" type="button">인식기 준비</button>
+    <span id="prepstat">비행 전 인터넷 있을 때 한 번만</span>
+  </div>
+</section>
 
 <section>
   <h2>크루넷 화면 붙여넣기</h2>
@@ -130,9 +162,19 @@
 <p class="note">읽을 때 <span style="color:var(--slash);font-weight:700">/</span> 에서 한 번 끊어 읽으세요.</p>
 
 <datalist id="menus"></datalist>
+<div id="errbar"></div>
 </div>
 
 <script>
+function showErr(msg){
+  const b = document.getElementById("errbar");
+  if(!b) return;
+  b.style.display = "block";
+  b.textContent = String(msg).slice(0,300);
+}
+window.addEventListener("error", e => showErr("오류: " + (e.message||e.type) + " :" + (e.lineno||"")));
+window.addEventListener("unhandledrejection", e => showErr("실패: " + (e.reason && e.reason.message ? e.reason.message : e.reason)));
+
 /* ── 1. 확정 메뉴 사전 ──────────────────────────────────── */
 const EXACT = {
 "낙지덮밥":["한식","Spicy stir-fried octopus with steamed rice"],
@@ -335,10 +377,10 @@ function parseAuto(text){
 }
 
 /* ── 4. 화면 ───────────────────────────────────────────── */
-document.getElementById("menus").innerHTML =
-  Object.keys(EXACT).map(k => '<option value="'+k+'">'+KIND_EMOJI[EXACT[k][0]]+' '+EXACT[k][0]+'</option>').join("");
 const EN_KIND = {"한식":"Korean","중식":"Chinese","양식":"Western","아시아식":"Asian"};
 const KIND_EMOJI = {"한식":"🍚","중식":"🥟","양식":"🍝","아시아식":"🍛"};
+document.getElementById("menus").innerHTML =
+  Object.keys(EXACT).map(k => '<option value="'+k+'">'+KIND_EMOJI[EXACT[k][0]]+' '+EXACT[k][0]+'</option>').join("");
 const KR_ORD = ["첫째","둘째","셋째","넷째"];
 
 function optRow(i){
@@ -526,6 +568,113 @@ document.getElementById("ai").onclick = async () => {
     stat.className="stat good"; stat.textContent = "영문을 다듬었습니다.";
   }catch(e){
     stat.className="stat"; stat.textContent = "연결이 안 됩니다. 자동 변환 결과를 그대로 쓰거나 직접 고쳐 주세요.";
+  }
+};
+
+/* ── 5. 스크린샷 읽기 ───────────────────────────────────── */
+const TJS = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+let ocrWorker = null;
+
+function progress(v){
+  const bar = document.getElementById("bar");
+  bar.style.display = v === null ? "none" : "block";
+  if(v !== null) bar.firstElementChild.style.width = Math.round(v*100) + "%";
+}
+function loadScript(src){
+  return new Promise((ok, no) => {
+    if(window.Tesseract) return ok();
+    const el = document.createElement("script");
+    el.src = src;
+    el.onload = () => ok();
+    el.onerror = () => no(new Error("인식기 파일을 못 받았습니다 (인터넷 확인)"));
+    document.head.appendChild(el);
+  });
+}
+async function getWorker(onProg){
+  if(ocrWorker) return ocrWorker;
+  await loadScript(TJS);
+  if(!window.Tesseract) throw new Error("인식기를 불러오지 못했습니다");
+  ocrWorker = await Tesseract.createWorker(["kor","eng"], 1, {
+    logger: m => { if(m.progress != null && onProg) onProg(m.progress); }
+  });
+  return ocrWorker;
+}
+// 밝은 픽셀을 흰색으로 날려 사번 워터마크를 지운다
+async function preprocess(file, thr){
+  const img = await createImageBitmap(file);
+  const scale = Math.min(2.2, Math.max(1, 1700 / img.width));
+  const w = Math.round(img.width*scale), h = Math.round(img.height*scale);
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const x = c.getContext("2d", {willReadFrequently:true});
+  x.drawImage(img, 0, 0, w, h);
+  const d = x.getImageData(0, 0, w, h), p = d.data;
+  for(let i = 0; i < p.length; i += 4){
+    const g = 0.299*p[i] + 0.587*p[i+1] + 0.114*p[i+2];
+    const v = g < thr ? 0 : 255;
+    p[i] = p[i+1] = p[i+2] = v; p[i+3] = 255;
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+async function readShot(f){
+  const stat = document.getElementById("ostat");
+  stat.className = "stat"; stat.textContent = "워터마크를 지우는 중…";
+  progress(0.05);
+  try{
+    const canvas = await preprocess(f, Number(document.getElementById("thr").value));
+    const prev = document.getElementById("prev");
+    prev.src = canvas.toDataURL("image/png");
+    prev.style.display = "block";
+    stat.textContent = "글씨를 읽는 중… 20초쯤 걸립니다";
+    const w = await getWorker(v => progress(0.1 + v*0.85));
+    const res = await w.recognize(canvas);
+    progress(null);
+    const text = (res && res.data && res.data.text) || "";
+    if(!text.trim()){
+      stat.className = "stat warn";
+      stat.textContent = "글씨를 못 찾았습니다. 지우기 값을 올려보세요.";
+      return;
+    }
+    document.getElementById("src").value = text;
+    const n = runParse();
+    stat.className = n ? "stat good" : "stat warn";
+    stat.textContent = n ? ("사진에서 메뉴 " + n + "개를 읽었습니다.")
+      : "읽기는 했는데 메뉴를 못 찾았습니다. 아래 붙여넣기 칸을 확인해 주세요.";
+  }catch(err){
+    progress(null);
+    stat.className = "stat warn";
+    stat.textContent = "실패: " + (err && err.message ? err.message : err);
+  }
+}
+document.getElementById("thr").addEventListener("input", e => {
+  document.getElementById("thrv").textContent = e.target.value;
+});
+document.getElementById("pick").onclick = () => {
+  document.getElementById("ostat").textContent = "사진첩을 엽니다…";
+  document.getElementById("shot").click();
+};
+document.getElementById("shot").addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if(f) readShot(f);
+});
+document.getElementById("prep").onclick = async () => {
+  const st = document.getElementById("prepstat");
+  st.textContent = "내려받는 중… 15MB 정도입니다";
+  progress(0.02);
+  try{
+    const w = await getWorker(v => progress(Math.max(0.02, v)));
+    const c = document.createElement("canvas");
+    c.width = 260; c.height = 80;
+    const x = c.getContext("2d");
+    x.fillStyle = "#fff"; x.fillRect(0,0,260,80);
+    x.fillStyle = "#000"; x.font = "40px sans-serif"; x.fillText("한식 MEAL", 10, 55);
+    await w.recognize(c);
+    progress(null);
+    st.textContent = "준비 끝. 인터넷 없이도 읽습니다.";
+  }catch(e){
+    progress(null);
+    st.textContent = "실패: " + (e && e.message ? e.message : e);
   }
 };
 
