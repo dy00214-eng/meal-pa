@@ -1,4 +1,4 @@
-const CACHE = "meal-pa-v2";
+const CACHE = "meal-pa-v4";
 const FILES = [
   "./",
   "./meal-pa.html",
@@ -27,7 +27,10 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if(req.method !== "GET") return;
-  if(new URL(req.url).origin !== self.location.origin) return;  // API 호출은 통과
+  const url = new URL(req.url);
+  // 인식기(tesseract) 파일은 외부에서 오지만 캐시해 둬야 오프라인에서 쓸 수 있다
+  const external = url.origin !== self.location.origin;
+  if(external && !/jsdelivr|tessdata|unpkg/.test(url.hostname)) return;  // API 호출은 통과
   e.respondWith(
     caches.match(req).then(hit => hit || fetch(req).then(res => {
       const copy = res.clone();
