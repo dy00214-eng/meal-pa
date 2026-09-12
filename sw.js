@@ -1,4 +1,4 @@
-const CACHE = "meal-pa-v4";
+const CACHE = "meal-pa-v5";
 const FILES = [
   "./",
   "./meal-pa.html",
@@ -33,9 +33,16 @@ self.addEventListener("fetch", e => {
   if(external && !/jsdelivr|tessdata|unpkg/.test(url.hostname)) return;  // API 호출은 통과
   e.respondWith(
     caches.match(req).then(hit => hit || fetch(req).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+      if(res && res.ok){
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+      }
       return res;
-    }).catch(() => caches.match("./meal-pa.html")))
+    }).catch(err => {
+      // 화면 이동일 때만 저장된 앱 화면으로 돌려준다.
+      // 스크립트나 wasm 요청에 HTML 을 주면 인식기가 통째로 망가진다.
+      if(req.mode === "navigate") return caches.match("./meal-pa.html");
+      throw err;
+    }))
   );
 });

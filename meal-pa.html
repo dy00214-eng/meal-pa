@@ -67,7 +67,7 @@
   .stat.warn{color:var(--slash);font-weight:600}
   .filebtn{display:block;width:100%;padding:14px;border:1px dashed var(--line);border-radius:8px;
     text-align:center;font-weight:600;color:var(--signal);background:var(--card);cursor:pointer}
-  .filebtn input{display:none}
+  #shot{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
   .prep{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px;color:var(--ink-soft)}
   .prep .btn{padding:8px 12px;font-size:13px;white-space:nowrap}
   .thumb{margin-top:12px;border:1px solid var(--line);border-radius:8px;width:100%;display:none}
@@ -103,9 +103,8 @@
 <section>
   <h2>스크린샷으로 읽기</h2>
   <p class="hint">사진을 고르면 사번 워터마크를 지우고 글씨를 읽습니다. 준비만 해두면 기내에서도 됩니다.</p>
-  <label class="filebtn">사진 선택
-    <input type="file" id="shot" accept="image/*">
-  </label>
+  <button class="filebtn" id="pick" type="button">사진 선택</button>
+  <input type="file" id="shot" accept="image/*">
   <div class="slider">
     <span>워터마크 지우기</span>
     <input type="range" id="thr" min="90" max="200" value="150">
@@ -560,10 +559,7 @@ document.getElementById("ai").onclick = async () => {
 };
 
 /* ── 5. 스크린샷 읽기 (오프라인 가능) ────────────────────── */
-const TJS  = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
-const TW   = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js";
-const TC   = "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1";
-const TLANG= "https://tessdata.projectnaptha.com/4.0.0";
+const TJS = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
 let ocrWorker = null;
 
 const bar = document.getElementById("bar");
@@ -582,8 +578,8 @@ function loadScript(src){
 async function getWorker(onProg){
   if(ocrWorker) return ocrWorker;
   await loadScript(TJS);
+  if(!window.Tesseract) throw new Error("인식기 파일을 불러오지 못했습니다");
   ocrWorker = await Tesseract.createWorker(["kor","eng"], 1, {
-    workerPath: TW, corePath: TC, langPath: TLANG,
     logger: m => { if(m.progress != null && onProg) onProg(m.progress); }
   });
   return ocrWorker;
@@ -612,6 +608,7 @@ const thrEl = document.getElementById("thr");
 thrEl.addEventListener("input", () => document.getElementById("thrv").textContent = thrEl.value);
 
 let lastFile = null;
+document.getElementById("pick").onclick = () => document.getElementById("shot").click();
 document.getElementById("shot").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0];
   if(!f) return;
@@ -646,7 +643,8 @@ async function readShot(f){
   }catch(err){
     progress(null);
     stat.className = "stat warn";
-    stat.textContent = "인식기를 불러오지 못했습니다. 인터넷 있을 때 '인식기 준비'를 한 번 눌러두세요.";
+    stat.textContent = "읽기 실패: " + (err && err.message ? err.message : err) +
+      " — 인터넷 있을 때 '인식기 준비'를 먼저 눌러주세요.";
   }
 }
 
@@ -667,7 +665,7 @@ document.getElementById("prep").onclick = async () => {
     st.textContent = "준비 끝. 이제 인터넷 없이도 사진을 읽습니다.";
   }catch(e){
     progress(null);
-    st.textContent = "실패했습니다. 인터넷 상태를 확인하고 다시 눌러주세요.";
+    st.textContent = "실패: " + (e && e.message ? e.message : e);
   }
 };
 
